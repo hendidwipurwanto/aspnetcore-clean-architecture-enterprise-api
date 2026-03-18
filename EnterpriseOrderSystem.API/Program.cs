@@ -1,4 +1,5 @@
 using EnterpriseOrderSystem.Infrastructure;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -34,6 +35,9 @@ builder.Services.AddAuthentication(options =>
         )
     };
 });
+// configure mediatR version 14.1.0 to register all handlers from the current assembly
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
 var app = builder.Build();
 
