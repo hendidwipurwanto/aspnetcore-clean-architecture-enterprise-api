@@ -1,4 +1,6 @@
-﻿using EnterpriseOrderSystem.Infrastructure.Persistence;
+﻿using EnterpriseOrderSystem.Application.Interfaces;
+using EnterpriseOrderSystem.Infrastructure.Persistence;
+using EnterpriseOrderSystem.Infrastructure.Persistence.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +18,8 @@ namespace EnterpriseOrderSystem.Infrastructure
         {
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+
+            services.AddScoped<IJwtService, JwtService>();
 
             return services;
         }
