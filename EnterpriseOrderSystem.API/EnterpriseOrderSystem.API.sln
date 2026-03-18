@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnterpriseOrderSystem.Appli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnterpriseOrderSystem.Infrastructure", "..\EnterpriseOrderSystem.Infrastructure\EnterpriseOrderSystem.Infrastructure.csproj", "{9E4A54C3-FAE1-4E33-B472-C42D0D950592}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BAF391D1-46AD-4876-8640-AE03D67D6184}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +40,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2DF4AEEA-0630-4CF4-BE80-BC7E1C8B63E5} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{F604D3E6-E1A0-4BB0-B152-53440FA71614} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{4D9222F4-96DC-49AE-8074-64078E8810F5} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{9E4A54C3-FAE1-4E33-B472-C42D0D950592} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {286E09E4-0084-457E-B72B-2F07E575E949}

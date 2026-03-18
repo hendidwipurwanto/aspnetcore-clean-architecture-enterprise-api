@@ -16,4 +16,8 @@
     <Folder Include="Validators\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\EnterpriseOrderSystem.Domain\EnterpriseOrderSystem.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

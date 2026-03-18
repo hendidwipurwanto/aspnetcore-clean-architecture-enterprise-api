@@ -11,4 +11,8 @@
     <Folder Include="Persistence\Repositories\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\EnterpriseOrderSystem.Application\EnterpriseOrderSystem.Application.csproj" />
+  </ItemGroup>
+
 </Project>

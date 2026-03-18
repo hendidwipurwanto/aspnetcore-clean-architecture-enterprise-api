@@ -10,4 +10,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\EnterpriseOrderSystem.Application\EnterpriseOrderSystem.Application.csproj" />
+    <ProjectReference Include="..\EnterpriseOrderSystem.Domain\EnterpriseOrderSystem.Domain.csproj" />
+    <ProjectReference Include="..\EnterpriseOrderSystem.Infrastructure\EnterpriseOrderSystem.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
