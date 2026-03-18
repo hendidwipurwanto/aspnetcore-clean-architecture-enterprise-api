@@ -6,4 +6,14 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\Auth\" />
+    <Folder Include="Features\Orders\" />
+    <Folder Include="Features\Products\" />
+    <Folder Include="DTOs\" />
+    <Folder Include="Interfaces\" />
+    <Folder Include="Behaviors\" />
+    <Folder Include="Validators\" />
+  </ItemGroup>
+
 </Project>
