@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EnterpriseOrderSystem.Application\EnterpriseOrderSystem.Application.csproj" />
+    <ProjectReference Include="..\EnterpriseOrderSystem.Domain\EnterpriseOrderSystem.Domain.csproj" />
   </ItemGroup>
 
 </Project>
