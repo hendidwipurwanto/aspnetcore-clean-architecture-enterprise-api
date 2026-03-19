@@ -1,8 +1,11 @@
 using EnterpriseOrderSystem.Infrastructure;
-using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using EnterpriseOrderSystem.Application.Common;
 using System.Text;
+using EnterpriseOrderSystem.Application;
+using EnterpriseOrderSystem.Domain.Entities;
+
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -35,11 +38,28 @@ builder.Services.AddAuthentication(options =>
         )
     };
 });
+
+
+
 // configure mediatR version 14.1.0 to register all handlers from the current assembly
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+    cfg.RegisterServicesFromAssembly(typeof(AssemblyReference).Assembly));
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    db.Database.EnsureCreated();
+
+    if (!db.Roles.Any())
+    {
+        db.Roles.Add(new Role("Admin"));
+        db.Roles.Add(new Role("User"));
+        db.SaveChanges();
+    }
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
