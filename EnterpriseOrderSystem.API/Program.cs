@@ -6,6 +6,7 @@ using System.Text;
 using EnterpriseOrderSystem.Application;
 using EnterpriseOrderSystem.Domain.Entities;
 using Microsoft.OpenApi.Models;
+using EnterpriseOrderSystem.API.Middlewares;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -87,7 +88,7 @@ using (var scope = app.Services.CreateScope())
         db.SaveChanges();
     }
 }
-
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
