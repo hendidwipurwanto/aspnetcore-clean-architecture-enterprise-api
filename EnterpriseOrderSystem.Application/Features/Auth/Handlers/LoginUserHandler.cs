@@ -1,6 +1,7 @@
 ﻿using EnterpriseOrderSystem.Application.Features.Auth.Commands;
 using EnterpriseOrderSystem.Application.Features.Auth.DTOs;
 using EnterpriseOrderSystem.Application.Interfaces;
+using EnterpriseOrderSystem.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -35,13 +36,32 @@ namespace EnterpriseOrderSystem.Application.Features.Auth.Handlers
                 throw new Exception("Invalid credentials");
 
             var token = _jwtService.GenerateToken(user.Id, user.Email, user.Role.Name);
+            
+            var refreshToken = _jwtService.GenerateRefreshToken();
 
+            var refreshTokenEntity = new RefreshToken(
+                user.Id,
+                refreshToken,
+                DateTime.UtcNow.AddDays(7)
+            );
+
+            _context.RefreshTokens.Add(refreshTokenEntity);
+            await _context.SaveChangesAsync();
+
+            return new AuthResponseDto
+            {
+                Token = token,
+                RefreshToken = refreshToken,
+                Email = user.Email,
+                Role = user.Role.Name
+            };
+            /*
             return new AuthResponseDto
             {
                 Token = token,
                 Email = user.Email,
                 Role = user.Role.Name
-            };
+            }; */
         }
     }
 }
