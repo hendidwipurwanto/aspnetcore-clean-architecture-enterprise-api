@@ -39,11 +39,23 @@ namespace EnterpriseOrderSystem.Application.Features.Auth.Handlers
 
             var token = _jwtService.GenerateToken(user.Id, user.Email, role.Name);
 
+            var refreshToken = _jwtService.GenerateRefreshToken();
+
+            var refreshTokenEntity = new RefreshToken(
+                user.Id,
+                refreshToken,
+                DateTime.UtcNow.AddDays(7)
+            );
+
+            _context.RefreshTokens.Add(refreshTokenEntity);
+            await _context.SaveChangesAsync();
+
             return new AuthResponseDto
             {
                 Token = token,
+                RefreshToken = refreshToken,
                 Email = user.Email,
-                Role = role.Name
+                Role = user.Role.Name
             };
         }
     }
