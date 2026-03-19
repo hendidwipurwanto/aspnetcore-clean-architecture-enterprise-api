@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using EnterpriseOrderSystem.Application.Features.Auth.Commands;
+using EnterpriseOrderSystem.Application.Features.Auth.DTOs;
 
 namespace EnterpriseOrderSystem.API.Controllers
 {
@@ -26,6 +27,17 @@ namespace EnterpriseOrderSystem.API.Controllers
         public async Task<IActionResult> Login([FromBody] LoginUserCommand command)
         {
             var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto request)
+        {
+            var result = await _mediator.Send(new RefreshTokenCommand
+            {
+                RefreshToken = request.RefreshToken
+            });
+
             return Ok(result);
         }
     }
