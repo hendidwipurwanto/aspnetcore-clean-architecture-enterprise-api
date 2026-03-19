@@ -1,4 +1,5 @@
-﻿using EnterpriseOrderSystem.Application.Features.Auth.Commands;
+﻿using EnterpriseOrderSystem.Application.Common.Exceptions;
+using EnterpriseOrderSystem.Application.Features.Auth.Commands;
 using EnterpriseOrderSystem.Application.Features.Auth.DTOs;
 using EnterpriseOrderSystem.Application.Interfaces;
 using EnterpriseOrderSystem.Domain.Entities;
@@ -31,7 +32,7 @@ namespace EnterpriseOrderSystem.Application.Features.Auth.Handlers
 
             // 2. Validasi token
             if (storedToken == null || storedToken.IsRevoked || storedToken.ExpiryDate < DateTime.UtcNow)
-                throw new Exception("Invalid refresh token");
+                throw new BadRequestException("Invalid refresh token");
 
             // 3. Ambil user
             var user = await _context.Users
@@ -39,7 +40,7 @@ namespace EnterpriseOrderSystem.Application.Features.Auth.Handlers
                 .FirstOrDefaultAsync(x => x.Id == storedToken.UserId, cancellationToken);
 
             if (user == null)
-                throw new Exception("User not found");
+                throw new BadRequestException("User not found");
 
             // 4. Generate JWT baru
             var newJwt = _jwtService.GenerateToken(user.Id, user.Email, user.Role.Name);

@@ -1,4 +1,5 @@
-﻿using EnterpriseOrderSystem.Application.Features.Auth.Commands;
+﻿using EnterpriseOrderSystem.Application.Common.Exceptions;
+using EnterpriseOrderSystem.Application.Features.Auth.Commands;
 using EnterpriseOrderSystem.Application.Features.Auth.DTOs;
 using EnterpriseOrderSystem.Application.Interfaces;
 using EnterpriseOrderSystem.Domain.Entities;
@@ -29,11 +30,13 @@ namespace EnterpriseOrderSystem.Application.Features.Auth.Handlers
                 .Include(x => x.Role)
                 .FirstOrDefaultAsync(x => x.Email == request.Email, cancellationToken);
 
-            Console.WriteLine(user.PasswordHash); // hashed
-            Console.WriteLine(request.Password); // plain
+            if (user == null)
+            {
+                throw new Exception("Invalid credentials");
+            }
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-                throw new Exception("Invalid credentials");
+                throw new BadRequestException("Invalid credentials");
 
             var token = _jwtService.GenerateToken(user.Id, user.Email, user.Role.Name);
             
