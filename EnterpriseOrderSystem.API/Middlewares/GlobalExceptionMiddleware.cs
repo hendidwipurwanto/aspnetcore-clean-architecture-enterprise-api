@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using EnterpriseOrderSystem.Application.Common.Exceptions;
+using System.Net;
 using System.Text.Json;
 
 namespace EnterpriseOrderSystem.API.Middlewares
@@ -28,9 +29,10 @@ namespace EnterpriseOrderSystem.API.Middlewares
         {
             var statusCode = ex switch
             {
-                UnauthorizedAccessException => HttpStatusCode.Unauthorized,
-                KeyNotFoundException => HttpStatusCode.NotFound,
+                BadRequestException => HttpStatusCode.BadRequest,
                 ArgumentException => HttpStatusCode.BadRequest,
+                KeyNotFoundException => HttpStatusCode.NotFound,
+                UnauthorizedAccessException => HttpStatusCode.Unauthorized,
                 _ => HttpStatusCode.InternalServerError
             };
 
