@@ -26,15 +26,37 @@ namespace EnterpriseOrderSystem.Application.Features.Auth.Handlers
 
         public async Task<AuthResponseDto> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
-            // 1. Ambil refresh token dari DB
+            //  1. Get refresh token from DB
             var storedToken = await _context.RefreshTokens
                 .FirstOrDefaultAsync(x => x.Token == request.RefreshToken, cancellationToken);
 
-            // 2. Validasi token
-            if (storedToken == null || storedToken.IsRevoked || storedToken.ExpiryDate < DateTime.UtcNow)
+            // 2. Token is not fou
+            if (storedToken == null)
                 throw new BadRequestException("Invalid refresh token");
 
-            // 3. Ambil user
+            // 3. REUSE DETECTION (THIS IS CORE FEATURE)
+            if (storedToken.IsUsed || storedToken.IsRevoked)
+            {
+                // revoke semua token milik user (force logout semua device)
+                var userTokens = await _context.RefreshTokens
+                    .Where(x => x.UserId == storedToken.UserId && !x.IsRevoked)
+                    .ToListAsync(cancellationToken);
+
+                foreach (var token in userTokens)
+                {
+                    token.Revoke();
+                }
+
+                await _context.SaveChangesAsync(cancellationToken);
+
+                throw new BadRequestException("Refresh token reuse detected. Please login again.");
+            }
+
+            // 4. Expired check
+            if (storedToken.ExpiryDate < DateTime.UtcNow)
+                throw new BadRequestException("Refresh token expired");
+
+            //  5. Ambil user
             var user = await _context.Users
                 .Include(x => x.Role)
                 .FirstOrDefaultAsync(x => x.Id == storedToken.UserId, cancellationToken);
@@ -42,12 +64,14 @@ namespace EnterpriseOrderSystem.Application.Features.Auth.Handlers
             if (user == null)
                 throw new BadRequestException("User not found");
 
-            // 4. Generate JWT baru
+            //  6. Generate JWT baru
             var newJwt = _jwtService.GenerateToken(user.Id, user.Email, user.Role.Name);
 
-            // (Optional tapi recommended) ROTATE refresh token
+            //  7. ROTATION (mark token lama sebagai used + revoked)
+            storedToken.MarkAsUsed();
             storedToken.Revoke();
 
+            //  8. Generate refresh token baru
             var newRefreshToken = _jwtService.GenerateRefreshToken();
 
             var newRefreshTokenEntity = new RefreshToken(
@@ -60,7 +84,7 @@ namespace EnterpriseOrderSystem.Application.Features.Auth.Handlers
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            // 5. Return token baru
+            //  9. Return response
             return new AuthResponseDto
             {
                 Token = newJwt,
