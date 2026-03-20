@@ -14,6 +14,7 @@ namespace EnterpriseOrderSystem.Domain.Entities
         public string Token { get; private set; }
         public DateTime ExpiryDate { get; private set; }
         public bool IsRevoked { get; private set; }
+        public bool IsUsed { get; private set; }
 
         private RefreshToken() { }
 
@@ -23,11 +24,17 @@ namespace EnterpriseOrderSystem.Domain.Entities
             Token = token;
             ExpiryDate = expiryDate;
             IsRevoked = false;
+            IsUsed = false;
         }
 
         public void Revoke()
         {
             IsRevoked = true;
+        }
+
+        public void MarkAsUsed()
+        {
+            IsUsed = true;
         }
     }
 }
