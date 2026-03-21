@@ -5,20 +5,16 @@ using EnterpriseOrderSystem.Application.Interfaces;
 using EnterpriseOrderSystem.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EnterpriseOrderSystem.Application.Features.Auth.Handlers
 {
     public class RefreshTokenHandler : IRequestHandler<RefreshTokenCommand, AuthResponseDto>
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IApplicationDbContext _context;
         private readonly IJwtService _jwtService;
 
-        public RefreshTokenHandler(ApplicationDbContext context, IJwtService jwtService)
+        // ✅ FIX: pakai interface, bukan ApplicationDbContext
+        public RefreshTokenHandler(IApplicationDbContext context, IJwtService jwtService)
         {
             _context = context;
             _jwtService = jwtService;
@@ -26,18 +22,17 @@ namespace EnterpriseOrderSystem.Application.Features.Auth.Handlers
 
         public async Task<AuthResponseDto> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
-            //  1. Get refresh token from DB
+            // 1. Get refresh token from DB
             var storedToken = await _context.RefreshTokens
                 .FirstOrDefaultAsync(x => x.Token == request.RefreshToken, cancellationToken);
 
-            // 2. Token is not fou
+            // 2. Token not found
             if (storedToken == null)
                 throw new BadRequestException("Invalid refresh token");
 
-            // 3. REUSE DETECTION (THIS IS CORE FEATURE)
+            // 3. REUSE DETECTION
             if (storedToken.IsUsed || storedToken.IsRevoked)
             {
-                // revoke semua token milik user (force logout semua device)
                 var userTokens = await _context.RefreshTokens
                     .Where(x => x.UserId == storedToken.UserId && !x.IsRevoked)
                     .ToListAsync(cancellationToken);
@@ -56,7 +51,7 @@ namespace EnterpriseOrderSystem.Application.Features.Auth.Handlers
             if (storedToken.ExpiryDate < DateTime.UtcNow)
                 throw new BadRequestException("Refresh token expired");
 
-            //  5. Ambil user
+            // 5. Get user
             var user = await _context.Users
                 .Include(x => x.Role)
                 .FirstOrDefaultAsync(x => x.Id == storedToken.UserId, cancellationToken);
@@ -64,14 +59,14 @@ namespace EnterpriseOrderSystem.Application.Features.Auth.Handlers
             if (user == null)
                 throw new BadRequestException("User not found");
 
-            //  6. Generate JWT baru
+            // 6. Generate new JWT
             var newJwt = _jwtService.GenerateToken(user.Id, user.Email, user.Role.Name);
 
-            //  7. ROTATION (mark token lama sebagai used + revoked)
+            // 7. ROTATION
             storedToken.MarkAsUsed();
             storedToken.Revoke();
 
-            //  8. Generate refresh token baru
+            // 8. Generate new refresh token
             var newRefreshToken = _jwtService.GenerateRefreshToken();
 
             var newRefreshTokenEntity = new RefreshToken(
@@ -84,7 +79,7 @@ namespace EnterpriseOrderSystem.Application.Features.Auth.Handlers
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            //  9. Return response
+            // 9. Return response
             return new AuthResponseDto
             {
                 Token = newJwt,

@@ -1,4 +1,5 @@
 ﻿using EnterpriseOrderSystem.Application.Features.Auth.DTOs;
+using EnterpriseOrderSystem.Domain.Entities;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,11 @@ namespace EnterpriseOrderSystem.Application.Features.Auth.Commands
 {
     public class RefreshTokenCommand : IRequest<AuthResponseDto>
     {
-        public string RefreshToken { get; set; }
+        public string RefreshToken { get; }
+
+        public RefreshTokenCommand(string refreshToken)
+        {
+            RefreshToken = refreshToken;
+        }
     }
 }

@@ -33,10 +33,9 @@ namespace EnterpriseOrderSystem.API.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto request)
         {
-            var result = await _mediator.Send(new RefreshTokenCommand
-            {
-                RefreshToken = request.RefreshToken
-            });
+            var result = await _mediator.Send(
+                new RefreshTokenCommand(request.RefreshToken)
+            );
 
             return Ok(result);
         }
