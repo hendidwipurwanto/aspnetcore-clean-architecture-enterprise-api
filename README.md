@@ -1,145 +1,184 @@
 # Enterprise Order System API
 
-A production-ready backend API built with **ASP.NET Core** using **Clean Architecture**, demonstrating secure authentication with **JWT**, **Refresh Token Rotation**, and **Refresh Token Reuse Detection**.
+A modern **Enterprise Order Management API** built with **ASP.NET Core**, implementing **Clean Architecture**, **CQRS**, and **JWT Authentication**.
+The system demonstrates scalable backend design patterns commonly used in enterprise-grade systems.
 
-This project showcases how to design a **secure, scalable, and maintainable backend system** using modern .NET architecture practices.
+This project showcases:
+
+* Clean Architecture
+* CQRS Pattern
+* Secure Authentication with JWT
+* Refresh Token Rotation
+* Global Exception Handling
+* Repository Pattern with Entity Framework Core
 
 ---
 
 # Features
 
-* Clean Architecture (Domain, Application, Infrastructure, API)
+* User Authentication (Register / Login)
 * JWT Authentication
 * Refresh Token Rotation
-* Refresh Token Reuse Detection (Session Hijack Protection)
+* Refresh Token Reuse Detection
+* Protected API Endpoints
 * Global Exception Handling Middleware
-* CQRS Pattern using MediatR
-* Entity Framework Core (SQL Server)
-* Unit Testing (Application Layer)
-* Domain Logic Testing
+* Clean Architecture
+* CQRS Pattern
+* Repository Pattern
+* Entity Framework Core Integration
 
 ---
 
 # Tech Stack
 
-* ASP.NET Core 8 Web API
+* ASP.NET Core Web API
 * Entity Framework Core
-* MediatR (CQRS)
 * SQL Server
-* xUnit
-* Moq
-* FluentAssertions
-* MockQueryable.Moq
+* JWT Authentication
+* CQRS Pattern
+* Clean Architecture
+* Middleware
+* REST API
 
 ---
 
 # Architecture
 
-This project follows **Clean Architecture principles**, separating responsibilities across layers.
+This project follows **Clean Architecture principles** to separate concerns and improve maintainability.
 
+```mermaid
+flowchart TD
+
+Client["Client Applications
+(Web / Mobile / External API)"]
+
+API["ASP.NET Core Web API
+(Presentation Layer)"]
+
+subgraph ApplicationLayer["Application Layer"]
+CQRS["CQRS Pattern
+Commands & Queries"]
+Handlers["Command & Query Handlers"]
+DTO["DTOs"]
+Validators["Input Validation"]
+end
+
+subgraph DomainLayer["Domain Layer"]
+Entities["Domain Entities"]
+Interfaces["Repository Interfaces"]
+DomainServices["Domain Services"]
+end
+
+subgraph InfrastructureLayer["Infrastructure Layer"]
+Repositories["Repository Implementations"]
+EF["Entity Framework Core"]
+Database["SQL Server Database"]
+end
+
+Client --> API
+API --> CQRS
+CQRS --> Handlers
+Handlers --> DTO
+Handlers --> Validators
+
+Handlers --> Entities
+Entities --> Interfaces
+
+Interfaces --> Repositories
+Repositories --> EF
+EF --> Database
 ```
-                 ┌──────────────────────────┐
-                 │        API Layer          │
-                 │ Controllers / Middleware  │
-                 └─────────────▲────────────┘
-                               │
-                 ┌─────────────┴────────────┐
-                 │    Application Layer      │
-                 │ Commands / Queries        │
-                 │ Handlers / DTOs           │
-                 │ Interfaces (CQRS)         │
-                 └─────────────▲────────────┘
-                               │
-             ┌─────────────────┴─────────────────┐
-             │           Domain Layer            │
-             │    Entities & Business Rules     │
-             └─────────────────▲─────────────────┘
-                               │
-                 ┌─────────────┴────────────┐
-                 │   Infrastructure Layer    │
-                 │ Database / JWT / EF Core  │
-                 └──────────────────────────┘
-```
+
+This layered architecture ensures:
+
+* Separation of concerns
+* Scalability
+* Testability
+* Maintainability
 
 ---
 
 # Authentication Flow
 
-```
-User
- │
- │ Login Request
- ▼
-API Controller
- │
- │ Validate Credentials
- ▼
-Generate Access Token (JWT)
- │
-Generate Refresh Token
- │
-Store Refresh Token in Database
- │
-Return Tokens to Client
+Authentication is implemented using **JWT Access Token and Refresh Token strategy**.
+
+```mermaid
+sequenceDiagram
+
+participant User
+participant Client
+participant API
+participant Database
+
+User->>Client: Login
+Client->>API: POST /api/auth/login
+
+API->>Database: Validate Credentials
+Database-->>API: User Valid
+
+API-->>Client: Access Token + Refresh Token
+
+Client->>API: Request Protected Resource
+API->>API: Validate JWT Token
+
+API-->>Client: Protected Data
 ```
 
 ---
 
 # Refresh Token Rotation
 
-Each refresh token usage generates a new refresh token.
+To enhance security, refresh tokens are rotated on every refresh request.
 
-```
-Client sends refresh token
-        │
-        ▼
-Validate refresh token
-        │
-Mark old token as USED
-        │
-Revoke old token
-        │
-Generate new refresh token
-        │
-Store new refresh token
-        │
-Return new tokens
+```mermaid
+sequenceDiagram
+
+participant Client
+participant API
+participant Database
+
+Client->>API: POST /refresh-token
+
+API->>Database: Validate Refresh Token
+Database-->>API: Token Valid
+
+API->>Database: Invalidate Old Token
+API->>Database: Create New Refresh Token
+
+API-->>Client: New Access Token + Refresh Token
 ```
 
 ---
 
 # Refresh Token Reuse Detection
 
-If an attacker tries to reuse a refresh token:
+If a refresh token is reused after rotation, the system will **invalidate the session**.
 
-```
-Attacker reuses refresh token
-        │
-        ▼
-System detects reused token
-        │
-All refresh tokens revoked
-        │
-User session invalidated
-        │
-User must login again
-```
+```mermaid
+flowchart TD
 
-This protects against **session hijacking attacks**.
+Client["Client"] --> API["API"]
+
+API --> CheckToken["Check Refresh Token"]
+
+CheckToken -->|Valid| IssueNew["Issue New Token"]
+CheckToken -->|Reused Token| RevokeSession["Revoke All Tokens"]
+
+RevokeSession --> SecurityAlert["Security Event Logged"]
+```
 
 ---
 
 # Global Exception Handling
 
-The API uses middleware to standardize error responses.
+Centralized exception handling is implemented using **ASP.NET Core Middleware**.
 
-Example:
+Example response:
 
 ```json
 {
-  "success": false,
-  "message": "Refresh token reuse detected. Please login again.",
-  "errors": null
+  "status": 500,
+  "message": "Unexpected server error occurred"
 }
 ```
 
@@ -149,22 +188,21 @@ Example:
 
 ## Authentication
 
-| Method | Endpoint           |
-| ------ | ------------------ |
-| POST   | /api/auth/register |
-| POST   | /api/auth/login    |
-| POST   | /api/auth/refresh  |
+| Method | Endpoint                | Description          |
+| ------ | ----------------------- | -------------------- |
+| POST   | /api/auth/register      | Register new user    |
+| POST   | /api/auth/login         | Login user           |
+| POST   | /api/auth/refresh-token | Refresh access token |
 
 ---
 
 ## Protected Example Endpoint
 
-| Method | Endpoint         |
-| ------ | ---------------- |
-| GET    | /api/products    |
-| GET    | /api/products/me |
+| Method | Endpoint    | Description |
+| ------ | ----------- | ----------- |
+| GET    | /api/orders | Get orders  |
 
-Requires header:
+Requires:
 
 ```
 Authorization: Bearer {access_token}
@@ -180,15 +218,6 @@ Authorization: Bearer {access_token}
 POST /api/auth/register
 ```
 
-```json
-{
-  "email": "admin@mail.com",
-  "password": "123456"
-}
-```
-
----
-
 ### Login
 
 ```
@@ -199,51 +228,61 @@ Response
 
 ```json
 {
-  "token": "jwt-access-token",
-  "refreshToken": "refresh-token",
-  "email": "admin@mail.com",
-  "role": "User"
+  "accessToken": "jwt_token",
+  "refreshToken": "refresh_token"
 }
 ```
-
----
 
 ### Refresh Token
 
 ```
-POST /api/auth/refresh
+POST /api/auth/refresh-token
 ```
+
+Response
 
 ```json
 {
-  "refreshToken": "your-refresh-token"
+  "accessToken": "new_access_token",
+  "refreshToken": "new_refresh_token"
 }
 ```
 
 ---
 
-# Testing
+# Application Layers
 
-Unit tests are implemented for both **Application Layer** and **Domain Layer**.
+## Application Layer
 
-### Application Tests
+Responsible for:
 
-* Refresh token reuse detection
-* Valid refresh token flow
-* Invalid refresh token
-* Expired refresh token
+* CQRS Commands & Queries
+* Business Use Cases
+* Validation
+* DTO Mapping
 
-### Domain Tests
+---
 
-* Refresh token revoke behavior
-* Refresh token usage tracking
-* Idempotent operations
+## Domain Layer
 
-Run tests:
+Contains:
 
-```
-dotnet test
-```
+* Core Business Entities
+* Domain Rules
+* Interfaces
+
+This layer has **no dependency on external frameworks**.
+
+---
+
+## Infrastructure Layer
+
+Responsible for:
+
+* Database Access
+* Entity Framework Core
+* Repository Implementations
+* External Integrations
 
 ---
 
@@ -252,18 +291,24 @@ dotnet test
 ### 1 Clone Repository
 
 ```
-git clone https://github.com/hendidwipurwanto/aspnetcore-clean-architecture-enterprise-api.git
+git clone https://github.com/yourusername/enterprise-order-system-api.git
 ```
 
 ---
 
 ### 2 Configure Database
 
-Edit `appsettings.json`
+Update connection string in:
+
+```
+appsettings.json
+```
+
+Example:
 
 ```
 "ConnectionStrings": {
-  "DefaultConnection": "Server=.;Database=EnterpriseOrderDb;Trusted_Connection=True"
+  "DefaultConnection": "Server=.;Database=EnterpriseOrderSystem;Trusted_Connection=True;"
 }
 ```
 
@@ -283,59 +328,48 @@ dotnet ef database update
 dotnet run
 ```
 
-Swagger UI
+API will run at:
 
 ```
-https://localhost:7098/swagger
+https://localhost:5001
 ```
 
 ---
 
 # Security Highlights
 
-This project implements production-level authentication practices:
+Security practices implemented in this project:
 
-* Short-lived access tokens
-* Long-lived refresh tokens
-* Refresh token rotation
-* Refresh token reuse detection
-* Global exception handling
+* JWT Authentication
+* Refresh Token Rotation
+* Refresh Token Reuse Detection
+* Secure Password Hashing
+* Global Exception Handling
+* Clean Architecture Separation
 
 ---
 
 # Future Improvements
 
-Possible enhancements:
+Possible enhancements for production systems:
 
 * Role Based Authorization
-* Redis Distributed Cache
-* Multi-Tenant Architecture
+* Order Management Module
+* Payment Integration
 * API Rate Limiting
-* Background Jobs
-* OpenTelemetry Logging
+* Distributed Caching (Redis)
+* Logging with Serilog
+* Docker Containerization
 
 ---
 
 # Purpose
 
-This project demonstrates how to build a **secure backend system with modern .NET architecture practices**, including:
-
-* Clean Architecture
-* CQRS Pattern
-* Advanced Authentication Flow
-* Production-grade API Security
+This project is built as a **learning and portfolio project** demonstrating how to design a secure and scalable backend API using **ASP.NET Core and Clean Architecture**.
 
 ---
 
 # Author
 
 Hendi Dwi Purwanto
-
-Senior .NET Backend Developer
-Specializing in ASP.NET Core, Clean Architecture, and Secure API Design.
-
-GitHub
-https://github.com/hendidwipurwanto
-
-LinkedIn
-https://linkedin.com/in/hendidwipurwanto
+ASP.NET Developer
