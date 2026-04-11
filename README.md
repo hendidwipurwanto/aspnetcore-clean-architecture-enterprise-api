@@ -365,11 +365,11 @@ Possible enhancements for production systems:
 
 # Purpose
 
-This project is built as a **learning and portfolio project** demonstrating how to design a secure and scalable backend API using **ASP.NET Core and Clean Architecture**.
+This project is built as a portfolio project demonstrating how to design a secure and scalable backend API using ASP.NET Core and Clean Architecture.
 
 ---
 
 # Author
-
 Hendi Dwi Purwanto
-ASP.NET Developer
+
+Senior .NET Backend Engineer
